@@ -5,13 +5,30 @@
 #if defined(__FAST_MATH__) || (defined(__FINITE_MATH_ONLY__) && __FINITE_MATH_ONLY__ > 0)
 #error "SuperJupiter requires IEEE non-finite checks; disable fast-math"
 #endif
-#include <cmath>
-#include <cstddef>
-#include <cstdint>
-#include <limits>
+#include <float.h>
+#include <math.h>
+#include <stddef.h>
+#include <stdint.h>
 #define SUPERJUPITER_THRESHOLD_EVENTS_VERSION "0.1.0"
 namespace superjupiter {
 namespace threshold_events {
+
+namespace detail {
+inline bool finite(double value) { return value == value && value >= -DBL_MAX && value <= DBL_MAX; }
+inline double oneMinusExpNegative(double ratio) {
+  // Stable at small elapsed/tau without requiring AVR's unavailable expm1.
+  if (ratio < 0.01) {
+    double term = ratio, total = ratio;
+    for (unsigned n = 2; n <= 12; ++n) {
+      term *= -ratio / n;
+      total += term;
+    }
+    return total;
+  }
+  return 1 - ::exp(-ratio);
+}
+} // namespace detail
+
 enum class State { Unknown, Normal, Alarm };
 enum class Status { Ok, InvalidInput, InvalidTime, InvalidConfig, GapReset };
 struct Config {
@@ -37,12 +54,12 @@ public:
       : c_(c), state_(State::Unknown), timed_(false), pending_(false), last_(0), since_(0),
         target_(State::Unknown) {}
   Result push(double value, uint32_t atMs) {
-    if (!std::isfinite(c_.low) || !std::isfinite(c_.high) || c_.low >= c_.high ||
+    if (!detail::finite(c_.low) || !detail::finite(c_.high) || c_.low >= c_.high ||
         c_.enterMs >= 0x80000000UL || c_.recoverMs >= 0x80000000UL || !c_.maxGapMs ||
         c_.maxGapMs >= 0x80000000UL)
       return Result{Status::InvalidConfig, state_, false};
     const State before = state_;
-    if (!std::isfinite(value)) {
+    if (!detail::finite(value)) {
       state_ = State::Unknown;
       timed_ = pending_ = false;
       return Result{Status::InvalidInput, state_, state_ != before};
