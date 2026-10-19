@@ -1,6 +1,6 @@
 {
   "name": "SuperJupiterThresholdEvents",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Persistent threshold alarms with hysteresis and explicit unknown state. Portable C++11 by SuperJupiter. Hardware validation pending.",
   "keywords": [
     "sensor",

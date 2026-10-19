@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(SuperJupiterThresholdEvents VERSION 0.1.0 LANGUAGES CXX)
+project(SuperJupiterThresholdEvents VERSION 0.1.1 LANGUAGES CXX)
 
 set(_superjupiter_threshold_events_top_level OFF)
 if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
@@ -19,6 +19,9 @@ target_compile_features(SuperJupiterThresholdEvents INTERFACE cxx_std_11)
 
 if(SUPERJUPITER_THRESHOLD_EVENTS_BUILD_TESTS)
   enable_testing()
+  add_executable(superjupiter-threshold-events-review tests/review_regressions.cpp)
+  target_link_libraries(superjupiter-threshold-events-review PRIVATE SuperJupiter::ThresholdEvents)
+  add_test(NAME superjupiter-threshold-events-review COMMAND superjupiter-threshold-events-review)
   add_executable(superjupiter-threshold-events-tests tests/test.cpp)
   target_link_libraries(superjupiter-threshold-events-tests PRIVATE SuperJupiter::ThresholdEvents)
   add_test(NAME superjupiter-threshold-events-tests COMMAND superjupiter-threshold-events-tests)
